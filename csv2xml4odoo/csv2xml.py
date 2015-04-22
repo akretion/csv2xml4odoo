@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # based on this code
 # http://code.activestate.com/recipes/577423-convert-csv-to-xml/
@@ -13,7 +14,10 @@
 # - relationnal fields notation in csv should be:
 #   myfield_id/id for m2o or myfield_ids/id for m2m
 
-# v0.9
+# v1.0
+
+# Changelog
+# v1 fix m2m
 
 import csv
 import glob
@@ -38,7 +42,7 @@ def convert_relationnal_field2xml(tag, value):
         mytag = mytag.replace(elm, '')
     if tag[-6:] == 'ids/id':
         # many2many
-        line = '%s" eval="[(6, 0, [%s])]"/>\n' % (mytag, value)
+        line = '%s" eval="[(6, 0, ref(\'%s\'))]"/>\n' % (mytag, value)
     else:
         # many2one
         line = '%s" ref="%s"/>\n' % (mytag, row[i])
