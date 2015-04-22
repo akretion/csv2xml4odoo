@@ -14,13 +14,15 @@
 # - relationnal fields notation in csv should be:
 #   myfield_id/id for m2o or myfield_ids/id for m2m
 
-# v1.0
+# v1.1
 
 # Changelog
-# v1 fix m2m
+# v1.1  add args capability
+# v1    fix m2m
 
 import csv
 import glob
+import sys
 
 NOUPDATE = 1
 BOOLEAN = ('True', 'False')
@@ -45,18 +47,18 @@ def convert_relationnal_field2xml(tag, value):
         line = '%s" eval="[(6, 0, ref(\'%s\'))]"/>\n' % (mytag, value)
     else:
         # many2one
-        line = '%s" ref="%s"/>\n' % (mytag, row[i])
+        line = '%s" ref="%s"/>\n' % (mytag, value)
     return line
 
 
-for csv_file in glob.glob('*.csv'):
+def convert_file(csv_file):
     no_update = NOUPDATE
     if csv_file in FILES_WITH_UPDATE:
         no_update = 0
     xml_file = csv_file.replace('.', '_').replace('_csv', '_data.xml')
     csv_data = csv.reader(open(csv_file))
     xml_data = open(xml_file, 'w')
-    xml_data.write(ERP_HEADER % NOUPDATE + "\n\n\n")
+    xml_data.write(ERP_HEADER % no_update + "\n\n\n")
     row_num = 0
     print csv_file
     for row in csv_data:
@@ -100,3 +102,12 @@ for csv_file in glob.glob('*.csv'):
         row_num += 1
     xml_data.write(ERP_FOOTER)
     xml_data.close()
+
+
+if len(sys.argv) > 1:
+    for csv_file in sys.argv:
+        if csv_file[-4:] in ('.csv', '.CSV'):
+            convert_file(csv_file)
+else:
+    for csv_file in glob.glob('*.csv'):
+        convert_file(csv_file)
