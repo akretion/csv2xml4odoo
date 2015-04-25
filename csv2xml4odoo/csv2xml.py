@@ -44,10 +44,12 @@ def convert_relationnal_field2xml(tag, value):
         mytag = mytag.replace(elm, '')
     if tag[-6:] == 'ids/id':
         # many2many
-        line = '%s" eval="[(6, 0, ref(\'%s\'))]"/>\n' % (mytag, value)
+        xml_ids = value.split(',')
+        members = ["ref('%s')" % x for x in xml_ids]
+        line = '%s" eval="[(6, 0, [%s])]"/>' % (mytag, ', '.join(members))
     else:
         # many2one
-        line = '%s" ref="%s"/>\n' % (mytag, value)
+        line = '%s" ref="%s"/>' % (mytag, value)
     return line
 
 
@@ -87,7 +89,7 @@ def convert_file(csv_file):
                 elif '/' in tags[i] or ':' in tags[i]:
                     # relationnal fields
                     xml_suffix = convert_relationnal_field2xml(tags[i], row[i])
-                    line = '%s%s' % (begin, xml_suffix)
+                    line = '%s%s\n' % (begin, xml_suffix)
                 elif char:
                     # numeric ghar field
                     line = '%s%s">%s</field>\n' % (begin, tags[i][:-5], row[i])
@@ -102,6 +104,8 @@ def convert_file(csv_file):
         row_num += 1
     xml_data.write(ERP_FOOTER)
     xml_data.close()
+    print "'%s' file has been created from '%s'" % (xml_file, csv_file)
+    print "        Note: 'one2many' fields are not supported by this script."
 
 
 if len(sys.argv) > 1:
