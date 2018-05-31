@@ -32,16 +32,18 @@ ERP_FOOTER = """
 
 
 HELP = """
-Use: c2x [OPTION]... [FILE]
 Convert Odoo csv files in xml files
-    csv is easy to maintain but xml data have 'noupdate' feature
+Csv is easy to maintain but xml data have
+'noupdate' and search features
 
 Limitations:
-- relation field One2many is NOT SUPPORTED
+
+- relation field One2many is NOT SUPPORTED\n
 - ambiguous columns: char type but contains float string,
-  should have special suffix on column name '|char'
+should have special suffix on column name '|char'\n
 - relationnal fields notation in csv should be:
-    myfield_id/id for m2o or myfield_ids/id for m2m
+myfield_id/id for m2o or myfield_ids/id for m2m
+
 """
 
 
@@ -112,25 +114,31 @@ def convert_file(csv_file, noupdate=1):
         row_num += 1
     xml_data.write(ERP_FOOTER)
     xml_data.close()
-    print "'%s' file has been created from '%s'\n" % (xml_file, csv_file)
+    print("'%s' file has been created from '%s'" % (xml_file, csv_file))
 
 
 @click.command(help=HELP)
 @click.option('--update', '-u', required=False,
               help="Set 'noupdate' attribute to 0 instead of 1")
-@click.option('--all', '-a', required=False,
-              help="Convert all csv files of the folder")
-def main(update, all):
+@click.argument('file', required=False)
+def main(update, file):
     noupdate = 1
     if update:
         noupdate = 0
-    if all:
+    converted = False
+    if file:
+        if file[-4:] in ('.csv', '.CSV'):
+            convert_file(file, noupdate)
+            converted = True
+        else:
+            return click.echo("File '%s' has no csv extension" % file)
+    else:
+        # all csv files are converted
         for csv_file in glob.glob('*.csv'):
             convert_file(csv_file, noupdate)
-    else:
-        for csv_file in sys.argv:
-            if csv_file[-4:] in ('.csv', '.CSV'):
-                convert_file(csv_file, noupdate)
+            converted = True
+    if not converted:
+        click.echo("Typewrite `c2x --help` for informations")
 
 
 if __name__ == '__main__':

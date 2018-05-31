@@ -12,7 +12,6 @@ setup(
     packages=find_packages(),
     long_description=open('README.md').read(),
     zip_safe=False,
-    entry_points='''
-        [console_scripts]
-        c2x=csv2xml4odoo.c2x:main
-    ''')
+    entry_points=dict(
+        console_scripts=['c2x=csv2xml4odoo.c2x:main'])
+)
