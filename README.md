@@ -1,5 +1,6 @@
 # csv2xml4odoo
-Odoo csv / xml converter
+
+## Odoo csv / xml converter
 
 ```
 Usage: c2x [OPTIONS] [FILE]
@@ -22,3 +23,7 @@ Options:
   --help             Show this message and exit.
 
 ```
+
+## Installation
+
+`sudo pip3 install -e .`
