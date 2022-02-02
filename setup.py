@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='csv2xml4odoo',
-    version='0.3',
+    version='0.4',
     url='https://github.com/akretion/csv2xml4odoo',
     license='AGPL',
     author='David BEAL',

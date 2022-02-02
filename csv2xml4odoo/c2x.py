@@ -6,6 +6,8 @@
 
 
 # Changelog
+# next   use https://github.com/alan-turing-institute/CleverCSV
+# v0.4  replace csv.reader by csv.DictReader
 # v0.3  make it a library
 # v0.2  add more args and help
 # v0.1  add args capability
@@ -13,7 +15,6 @@
 
 import csv
 import glob
-import sys
 import click
 
 BOOLEAN = ('True', 'False')
@@ -64,23 +65,22 @@ def convert_relationnal_field2xml(tag, value):
 
 def convert_file(csv_file, noupdate=1):
     xml_file = csv_file.replace('.', '_').replace('_csv', '_data.xml')
-    csv_data = csv.reader(open(csv_file))
     xml_data = open(xml_file, 'w')
     xml_data.write(ERP_HEADER % (noupdate, csv_file) + "\n\n\n")
-    row_num = 0
-    for row in csv_data:
-        if row_num == 0:
-            tags = row
-            for i in range(len(tags)):
-                tags[i] = tags[i].replace(' ', '_')
-            if 'id' in tags:
-                id_position = tags.index('id')
-            else:
-                print ("EXCEPTION: No 'id' in %s: impossible to generate "
-                       "the xml file\n" % csv_file)
-                return
+    with open(csv_file, "r") as file:
+        reader = csv.DictReader(file)
+        tags = reader.fieldnames
+        for i in range(len(tags)):
+            tags[i] = tags[i].replace(' ', '_')
         else:
-            for i in range(len(tags)):
+            print ("EXCEPTION: No 'id' in %s: impossible to generate "
+                   "the xml file\n" % csv_file)
+        for line in reader:
+            print(line)
+            # import pdb; pdb.set_trace()
+            for key, val in line.items():
+                if val is None:
+                    continue
                 char = False
                 # ambiguous column (char type but contains float string)
                 # should be mark by suffix |char
@@ -88,30 +88,30 @@ def convert_file(csv_file, noupdate=1):
                     char = True
                 numeric = False
                 begin = '    <field name="'
+                print("%s" % line)
                 try:
-                    float(row[i])
+                    float(val)
                     numeric = True
                 except Exception:
                     pass
-                if tags[i] == 'id':
+                if key == 'id':
                     line = ('<record id="%s" model="%s">\n'
-                            % (row[id_position], csv_file[:-4]))
-                elif '/' in tags[i] or ':' in tags[i]:
+                            % (line["id"], csv_file[:-4]))
+                elif '/' in key or ':' in key:
                     # relationnal fields
-                    xml_suffix = convert_relationnal_field2xml(tags[i], row[i])
+                    xml_suffix = convert_relationnal_field2xml(key, val)
                     line = '%s%s\n' % (begin, xml_suffix)
                 elif char:
                     # numeric ghar field
-                    line = '%s%s">%s</field>\n' % (begin, tags[i][:-5], row[i])
-                elif numeric or row[i] in BOOLEAN:
-                    line = '%s%s" eval="%s"/>\n' % (begin, tags[i], row[i])
+                    line = '%s%s">%s</field>\n' % (begin, key[:-5], val)
+                elif numeric or val in BOOLEAN:
+                    line = '%s%s" eval="%s"/>\n' % (begin, key, val)
                 else:
                     # basic fields
-                    line = '%s%s">%s</field>\n' % (begin, tags[i], row[i])
-                if row[i] or tags[i] == 'id':
+                    line = '%s%s">%s</field>\n' % (begin, key, val)
+                if val or key == 'id':
                     xml_data.write(line)
             xml_data.write('</record>' + "\n\n")
-        row_num += 1
     xml_data.write(ERP_FOOTER)
     xml_data.close()
     print("'%s' file has been created from '%s'" % (xml_file, csv_file))
