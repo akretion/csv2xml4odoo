@@ -72,12 +72,14 @@ def convert_file(csv_file, noupdate=1):
         tags = reader.fieldnames
         for i in range(len(tags)):
             tags[i] = tags[i].replace(' ', '_')
-        else:
-            print ("EXCEPTION: No 'id' in %s: impossible to generate "
+        if "id" not in tags:
+            print ("EXCEPTION: No 'id' column in %s: impossible to generate "
                    "the xml file\n" % csv_file)
         for line in reader:
             print(line)
-            # import pdb; pdb.set_trace()
+            if None in line:
+                # i.e. too many commas in line (more columns than in header)
+                del line[None]
             for key, val in line.items():
                 if val is None:
                     continue
@@ -102,7 +104,7 @@ def convert_file(csv_file, noupdate=1):
                     xml_suffix = convert_relationnal_field2xml(key, val)
                     line = '%s%s\n' % (begin, xml_suffix)
                 elif char:
-                    # numeric ghar field
+                    # numeric char field
                     line = '%s%s">%s</field>\n' % (begin, key[:-5], val)
                 elif numeric or val in BOOLEAN:
                     line = '%s%s" eval="%s"/>\n' % (begin, key, val)
