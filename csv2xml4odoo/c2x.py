@@ -7,6 +7,7 @@
 
 # Changelog
 # next   use https://github.com/alan-turing-institute/CleverCSV
+# v0.5  fix, do not update iterated var
 # v0.4  replace csv.reader by csv.DictReader
 # v0.3  make it a library
 # v0.2  add more args and help
@@ -76,7 +77,6 @@ def convert_file(csv_file, noupdate=1):
             print ("EXCEPTION: No 'id' column in %s: impossible to generate "
                    "the xml file\n" % csv_file)
         for line in reader:
-            print(line)
             if None in line:
                 # i.e. too many commas in line (more columns than in header)
                 del line[None]
@@ -96,24 +96,25 @@ def convert_file(csv_file, noupdate=1):
                     numeric = True
                 except Exception:
                     pass
-                if key == 'id':
-                    line = ('<record id="%s" model="%s">\n'
+                if key == 'id' and line["id"]:
+                    xline = ('<record id="%s" model="%s">\n'
                             % (line["id"], csv_file[:-4]))
                 elif '/' in key or ':' in key:
                     # relationnal fields
                     xml_suffix = convert_relationnal_field2xml(key, val)
-                    line = '%s%s\n' % (begin, xml_suffix)
+                    xline = '%s%s\n' % (begin, xml_suffix)
                 elif char:
                     # numeric char field
-                    line = '%s%s">%s</field>\n' % (begin, key[:-5], val)
+                    xline = '%s%s">%s</field>\n' % (begin, key[:-5], val)
                 elif numeric or val in BOOLEAN:
-                    line = '%s%s" eval="%s"/>\n' % (begin, key, val)
+                    xline = '%s%s" eval="%s"/>\n' % (begin, key, val)
                 else:
                     # basic fields
-                    line = '%s%s">%s</field>\n' % (begin, key, val)
-                if val or key == 'id':
-                    xml_data.write(line)
-            xml_data.write('</record>' + "\n\n")
+                    xline = '%s%s">%s</field>\n' % (begin, key, val)
+                if val or key == 'id' and line['id']:
+                    xml_data.write(xline)
+            if line['id']:
+                xml_data.write('</record>' + "\n\n")
     xml_data.write(ERP_FOOTER)
     xml_data.close()
     print("'%s' file has been created from '%s'" % (xml_file, csv_file))
