@@ -1,0 +1,30 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "csv2xml4odoo"
+dynamic = ["version"]
+description = "Convert csv to xml in Odoo ERP context"
+readme = "README.md"
+license = "AGPL"
+authors = [
+    { name = "David BEAL", email = "david.beal@akretion.com" },
+]
+dependencies = [
+    "click",
+]
+
+[project.scripts]
+c2x = "csv2xml4odoo.c2x:main"
+
+[project.urls]
+Homepage = "https://github.com/akretion/csv2xml4odoo"
+
+[tool.hatch.version]
+path = "csv2xml4odoo/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/csv2xml4odoo",
+]
